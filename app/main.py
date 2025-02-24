@@ -1,11 +1,15 @@
-from fastapi import FastAPI, HTTPException
-from app.prediction import predict_stock
+from fastapi import FastAPI, Request
 
 app = FastAPI()
 
-@app.get("/")
-async def root():
-    return {"message": "Stock Prediction API for LQ45"}
+@app.middleware("http")
+async def log_request(request: Request, call_next):
+    print(f"Received {request.method} request at {request.url.path}")
+    return await call_next(request)
+
+# @app.get("/")
+# async def root():
+#     return {"message": "Stock Prediction API for LQ45"}
 
 @app.post("/predict/")
 async def predict(symbols: list[str]):
@@ -25,7 +29,6 @@ async def predict(symbols: list[str]):
         except HTTPException as e:
             raise e  
         except Exception as e:
-           
             raise HTTPException(
                 status_code=500,
                 detail=f"Terjadi kesalahan pada pemrosesan untuk simbol {symbol}. Error: {str(e)}"
